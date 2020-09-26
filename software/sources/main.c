@@ -24,25 +24,26 @@
 // License: http://creativecommons.org/licenses/by-sa/3.0/
 
 
-// Libraries
+// libraries
 #include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>
 #include <util/delay.h>
 
-// Pin definiations
+// pin definitions
 #define LED0          PB0
 #define LED1          PB1
 #define BUTTON        PB2
 #define MOSFET        PB4
 
-// Candle simulation parameters
+// candle simulation parameters
 #define MINUNCALM     (20*256)
 #define MAXUNCALM     (120*256)
 #define UNCALMINC     20
 #define MAXDEV        100
 #define CANDLEDELAY   25
+
 
 // some variables for the candle simulation
 int16_t centerx   = MAXDEV;
@@ -56,15 +57,13 @@ uint8_t cnt       = 0;
 // some variables for the random generator
 uint16_t rn;
 
-
-// Pseudo random number generator
+// pseudo random number generator
 uint16_t prng(uint32_t maxvalue) {
   rn = (rn >> 0x01U) ^ (-(rn & 0x01U) & 0xB400U);
   return( (maxvalue * rn) >> 16 );
 }
 
-
-// Candle simulation
+// candle simulation
 void updateCandle(void) {
   int movx=0;
   int movy=0;
@@ -107,7 +106,6 @@ void updateCandle(void) {
   OCR0B = 155 + centery;
 }
 
-
 // go to sleep in order to save energy, wake up again by pin change interrupt (button pressed)
 void sleep(void) {
   set_sleep_mode (SLEEP_MODE_PWR_DOWN); // set sleep mode to power down
@@ -121,13 +119,13 @@ void sleep(void) {
   power_all_enable();                   // power everything back on
 }
 
-
+// main function
 int main(void) {
   // PWM setup
   TCCR0A = (1<<COM0A1) | (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
   TCCR0B = (1<<CS01);
 
-  // Setup pins
+  // setup pins
   DDRB   = (1<<LED0) | (1<<LED1) | (1<<MOSFET);   // set output pins
   PORTB |= (1<<BUTTON) | (1<<MOSFET);             // pullup for button + MOSFET on
 
@@ -158,7 +156,6 @@ int main(void) {
   _delay_ms(CANDLEDELAY);                         // delay
   }
 }
-
 
 // pin change interrupt service routine
 EMPTY_INTERRUPT (PCINT0_vect);          // nothing to be done here, just wake up from sleep
