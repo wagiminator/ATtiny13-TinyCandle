@@ -20,7 +20,9 @@
 // Controller:  ATtiny13
 // Clockspeed:  1.2 MHz internal
 //
-// 2020 by Stefan Wagner (https://easyeda.com/wagiminator)
+// 2020 by Stefan Wagner 
+// Project Files (EasyEDA): https://easyeda.com/wagiminator
+// Project Files (Github):  https://github.com/wagiminator
 // License: http://creativecommons.org/licenses/by-sa/3.0/
 
 
