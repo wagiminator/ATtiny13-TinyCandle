@@ -1,6 +1,6 @@
-// TinyCandle
+// TinyCandle - ATtiny13A
 //
-// Tealight candle simulation for ATtiny13a.
+// Tealight candle simulation for ATtiny13A.
 // 
 // The simulation code is based on the great work of Mark Sherman
 // (https://github.com/carangil/candle).
@@ -17,7 +17,7 @@
 //                    GND  4|    |5  PB0 (D0) ------ LED1/2 PWM
 //                          +----+    
 //
-// Controller:  ATtiny13
+// Controller:  ATtiny13A
 // Core:        MicroCore (https://github.com/MCUdude/MicroCore)
 // Clockspeed:  1.2 MHz internal
 // BOD:         disabled (to save energy)
@@ -27,18 +27,23 @@
 // License: http://creativecommons.org/licenses/by-sa/3.0/
 
 
-// Libraries
+// less delay accuracy saves 16 bytes flash
+#define __DELAY_BACKWARD_COMPATIBLE__ 1
+
+// libraries
+#include <avr/io.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
-#include <avr/power.h>
+#include <util/delay.h>
 
-// Pin definiations
+// pin definitions
 #define LED0          PB0
 #define LED1          PB1
 #define BUTTON        PB2
+#define UNUSEDPIN     PB3
 #define MOSFET        PB4
 
-// Candle simulation parameters
+// candle simulation parameters
 #define MINUNCALM     (20*256)
 #define MAXUNCALM     (120*256)
 #define UNCALMINC     20
@@ -46,71 +51,31 @@
 #define CANDLEDELAY   25
 
 // some variables for the candle simulation
-int centerx = MAXDEV;
-int centery = MAXDEV/2;
-int xvel    = 0;
-int yvel    = 0;
-uint16_t uncalm  = MINUNCALM;
-int uncalmdir= UNCALMINC;
-uint8_t cnt=0;
+int16_t centerx   = MAXDEV;
+int16_t centery   = MAXDEV/2;
+int16_t xvel      = 0;
+int16_t yvel      = 0;
+uint16_t uncalm   = MINUNCALM;
+int16_t uncalmdir = UNCALMINC;
+uint8_t cnt       = 0;
 
 // some variables for the random generator
 uint16_t rn;
 
-
-void setup() {
-  // PWM setup
-  TCCR0A = bit(COM0A1) | bit(COM0B1) | bit(WGM01) | bit(WGM00);
-  TCCR0B = bit(CS01);
-
-  // Setup pins
-  DDRB   = bit(LED0) | bit(LED1) | bit(MOSFET); // set output pins
-  PORTB |= bit(BUTTON) | bit(MOSFET);           // pullup for button + MOSFET on
-
-  // setup pin change interrupt
-  GIMSK = 0b00100000;                           // turn on pin change interrupts
-  PCMSK = bit(BUTTON);                          // turn on interrupt on button pin
-
-  // disable ADC for energy saving
-  ADCSRA = 0;                                   // disable ADC
-}
-
-
-void loop() {
-  updateCandle();                               // candle simulation
-
-  if (!bitRead(PINB, BUTTON)) {                 // if button is pressed
-    DDRB = bit(MOSFET);                         // LED pins as input (PWM off)
-    bitClear(PORTB, MOSFET);                    // switch off MOSFET
-    delay(10);                                  // debounce button
-    while (!bitRead(PINB, BUTTON));             // wait for button released
-    delay(10);                                  // debounce button
-    sleep();                                    // sleep until button pressed
-    DDRB = bit(LED0) | bit(LED1) | bit(MOSFET); // LED pins as output (PWM on)
-    bitSet(PORTB, MOSFET);                      // switch on MOSFET
-    delay(10);                                  // debounce button
-    while (!bitRead(PINB, BUTTON));             // wait for button released
-  }
-  
-  delay(CANDLEDELAY);                           // delay
-}
-
-
-// Pseudo random number generator
-uint16_t prng(uint32_t maxvalue) {
+// pseudo random number generator
+uint16_t prng(uint16_t maxvalue) {
   rn = (rn >> 0x01U) ^ (-(rn & 0x01U) & 0xB400U);
-  return( (maxvalue * rn) >> 16 );
+  return( (uint32_t)(maxvalue * rn) >> 16 );
 }
 
-
-// Candle simulation
-void updateCandle() {
-  int movx=0;
-  int movy=0;
+// candle simulation
+void updateCandle(void) {
+  int movx = 0;
+  int movy = 0;
    
   // random poke, intensity determined by uncalm value (0 is perfectly calm)
-  movx = prng(uncalm>>8) - (uncalm>>9);
-  movy = prng(uncalm>>8) - (uncalm>>9);
+  movx = prng(uncalm >> 8) - (uncalm >> 9);
+  movy = prng(uncalm >> 8) - (uncalm >> 9);
   
   // if reach most calm value, start moving towards uncalm
   if (uncalm < MINUNCALM) uncalmdir = UNCALMINC;
@@ -133,8 +98,8 @@ void updateCandle() {
   cnt++;
   if (! (cnt & 3)) {
     //attenuate velocity 1/4 clicks 
-    xvel = (xvel *999)/1000;
-    yvel = (yvel *999)/1000;
+    xvel = (xvel * 999) / 1000;
+    yvel = (yvel * 999) / 1000;
   }
 
   // apply acceleration towards center, proportional to distance from center (spring motion; hooke's law)
@@ -146,20 +111,48 @@ void updateCandle() {
   OCR0B = 155 + centery;
 }
 
+// main function
+int main(void) {
+  // PWM setup
+  TCCR0A = (1<<COM0A1) | (1<<COM0B1)    // clear OC0A/OC0B on compare match, set at TOP
+         | (1<<WGM01)  | (1<<WGM00);    // fast PWM 0x00 - 0xff
+  TCCR0B = (1<<CS01);                   // set prescaler div8
 
-// go to sleep in order to save energy, wake up again by pin change interrupt (button pressed)
-void sleep() {
+  // setup pins
+  DDRB   = (1<<LED0) | (1<<LED1)        // LED pins as output
+         | (1<<MOSFET)                  // MOSFET pin as output
+         | (1<<UNUSEDPIN);              // unused pin to output low to save power
+  PORTB  = (1<<BUTTON) | (1<<MOSFET);   // pullup for button + MOSFET on
+
+  // setup pin change interrupt
+  GIMSK = (1<<PCIE);                    // turn on pin change interrupts
+  PCMSK = (1<<BUTTON);                  // pin change interrupt on button pin
+  sei();                                // enable global interrupts
+
+  // disable unused peripherals to save power
+  ADCSRA = 0;                           // disable ADC
+  ACSR   = (1<<ACD);                    // disable analog comperator
+  PRR    = (1<<PRADC);                  // shut down ADC
   set_sleep_mode (SLEEP_MODE_PWR_DOWN); // set sleep mode to power down
-  bitSet (GIFR, PCIF);                  // clear any outstanding interrupts
-  power_all_disable ();                 // power everything off
-  noInterrupts ();                      // timed sequence coming up
-  sleep_enable ();                      // ready to sleep
-  interrupts ();                        // interrupts are required now
-  sleep_cpu ();                         // sleep              
-  sleep_disable ();                     // precaution
-  power_all_enable ();                  // power everything back on
-}
 
+  // main loop
+  while(1) {
+    updateCandle();                     // candle simulation
+    if (~PINB & (1<<BUTTON)) {          // if button is pressed
+      DDRB  &= ~((1<<LED0) | (1<<LED1));// LED pins as input (PWM off)
+      PORTB &= ~(1<<MOSFET);            // switch off MOSFET
+      _delay_ms(10);                    // debounce button
+      while (~PINB & (1<<BUTTON));      // wait for button released
+      _delay_ms(10);                    // debounce button
+      sleep_mode();                     // sleep until button pressed
+      DDRB  |= (1<<LED0) | (1<<LED1);   // LED pins as output (PWM on)
+      PORTB |= (1<<MOSFET);             // switch on MOSFET
+      _delay_ms(10);                    // debounce button
+      while (~PINB & (1<<BUTTON));      // wait for button released
+    }  
+  _delay_ms(CANDLEDELAY);               // delay
+  }
+}
 
 // pin change interrupt service routine
 EMPTY_INTERRUPT (PCINT0_vect);          // nothing to be done here, just wake up from sleep

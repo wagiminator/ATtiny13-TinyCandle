@@ -1,2 +1,1 @@
-avrdude -c usbtiny -p t13 -U flash:w:tinycandle.hex
-avrdude -c usbtiny -p t13 -U hfuse:w:0xfb:m -U lfuse:w:0x62:m
+avrdude -c usbasp -p t13 -U lfuse:w:0x2a:m -U hfuse:w:0xfb:m -U flash:w:tinycandle.hex
