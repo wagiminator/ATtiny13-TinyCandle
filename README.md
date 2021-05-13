@@ -7,7 +7,7 @@ A simple tealight candle simulation based on the ATtiny13A.
 
 # Software
 ## Candle Simulation
-The simulation code is based on the great work of [Mark Sherman](https://github.com/carangil/candle). With most LED candles, the random flickering is rather silly and lacks the spooky element of candlelight: shadows cast by the candle move because the flame is in motion. With NeoCandle, four NeoPixels are arranged in a square, the intensity of the four LEDs forms a "center" of light balance that can be moved around smoothly.
+The simulation code is based on the great work of [Mark Sherman](https://github.com/carangil/candle). With most LED candles, the random flickering is rather silly and lacks the spooky element of candlelight: shadows cast by the candle move because the flame is in motion. With TinyCandle, four LEDs are arranged in a square, their intensity forms a "center" of light balance that can be moved around smoothly.
 
 This 'physics-based' candlelight has the following properties:
 - The flame has a position and a velocity.
