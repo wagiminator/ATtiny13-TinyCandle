@@ -3,7 +3,7 @@ A simple tealight candle simulation based on the ATtiny13A.
 
 - Design Files (EasyEDA): https://easyeda.com/wagiminator/attiny13-tinycandle
 
-![TinyCandle_pic1.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyCandle/master/documentation/TinyCandle_pic1.jpg)
+![TinyCandle_pic3.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyCandle/master/documentation/TinyCandle_pic3.jpg)
 
 # Software
 ## Candle Simulation
@@ -67,7 +67,7 @@ uint16_t prng(uint16_t maxvalue) {
 3. [Lightweight Random Number Generator by Łukasz Podkalicki](https://blog.podkalicki.com/attiny13-pseudo-random-numbers/)
 4. [NeoCandle based on ATtiny25/45/85](https://github.com/wagiminator/ATtiny85-TinyCandle)
 
-![TinyCandle_pic3.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyCandle/master/documentation/TinyCandle_pic3.jpg)
+![TinyCandle_pic1.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyCandle/master/documentation/TinyCandle_pic1.jpg)
 ![TinyCandle_pic2.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny13-TinyCandle/master/documentation/TinyCandle_pic2.jpg)
 
 # License
