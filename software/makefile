@@ -1,13 +1,12 @@
 # Project:  tinyCandle
 # Author:   Stefan Wagner
-# Year:     2020 - 2021
-# URL:      https://easyeda.com/wagiminator
-#           https://github.com/wagiminator
+# Year:     2020
+# URL:      https://github.com/wagiminator
 #
 # Type "make help" in the command line.
 
 # Input and Output File Names
-SKETCH  = TinyCandle_v1.0.ino
+SKETCH  = TinyCandle.ino
 TARGET  = tinycandle
 
 # Compiler Options
